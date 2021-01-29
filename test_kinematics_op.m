@@ -35,27 +35,9 @@ addBody(robot, link2, 'link1');
 addBody(robot, link3, 'link2');
 addBody(robot,bodyEndEffector,'link3');
 
-figure;
-robot.show
-figure;
-config = randomConfiguration(robot);
-tformf = getTransform(robot,config,'endeffector','base');
-show(robot,config)
-figure;
-config2 = [pi/6, -pi/2, 0]; % These angles need to be limited
-tformf2 = getTransform(robot,config2,'endeffector','base');
-show(robot,config2)
-
 gik = generalizedInverseKinematics('RigidBodyTree',robot,'ConstraintInputs',{'joint', 'pose'});
 jointConst = constraintJointBounds(robot);
 jointConst.Bounds = [-pi/2 pi/6; -pi/2 0; -pi/2 0];
-
-%%%% These lines are for the orientation constraint, but it might already
-%%%% be embedded on the pose target constraint
-% M = (-pi/2)*[0 0 1];
-% quat = quaternion(M, 'rotvec');
-% orientationConst = constraintOrientationTarget(endeffector)
-% orientationConst.TargetOrientation = compact(quat)
 
 poseConst = constraintPoseTarget('endeffector');
 axang = [0 0 1 -pi/4];
@@ -68,7 +50,20 @@ poseConst.TargetTransform = M;
 poseConst.PositionTolerance = 0.004; % 4mm of tolerance from target position
 
 configSol = gik([0.5934 -1.1424 -1.0552],jointConst,poseConst);
-figure;
-show(robot,configSol)
 tformf_solv = getTransform(robot,configSol,'endeffector','base');
 Jac = geometricJacobian(robot, configSol, 'endeffector');
+Jsi = pseudo_inv(Jac);
+% First need to get th dot
+V = rand(6,1);
+P = rand(3,2);
+F = rand(6,1);
+DMT = [15 0; 0 4];
+
+th_dot = Jsi*V;
+h_dot = P'*th_dot;
+wm_dot = DMT*h_dot;
+
+tao_joint = Jac'*F;
+Psi = pseudo_inv(P);
+f_tend = Psi*tao_joint;
+tao_motor = DMT*h_dot;
