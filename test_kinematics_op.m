@@ -3,7 +3,6 @@ close all
 clc
 
 link1 = rigidBody('link1');
-
 jnt1 = rigidBodyJoint('jnt1', 'revolute');
 jnt1.HomePosition = 0;
 tform = trvec2tform([0.0 0.15 0]);
@@ -37,7 +36,7 @@ addBody(robot,bodyEndEffector,'link3');
 
 gik = generalizedInverseKinematics('RigidBodyTree',robot,'ConstraintInputs',{'joint', 'pose'});
 jointConst = constraintJointBounds(robot);
-jointConst.Bounds = [-pi/2 pi/6; -pi/2 0; -pi/2 0];
+jointConst.Bounds = [-pi/2 pi/4; -pi/2 0; -pi/2 0];
 
 poseConst = constraintPoseTarget('endeffector');
 axang = [0 0 1 -pi/4];
