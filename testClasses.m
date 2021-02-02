@@ -2,12 +2,37 @@ clear all
 close all
 clc
 
+
+addpath('./PSO');
+
 links = {'link1', 'link2', 'link3'};
 joints = {'jnt1', 'jnt2', 'jnt3'};
 type = {'revolute', 'revolute', 'revolute'};
 frames = {trvec2tform([0.0 0.15 0]), trvec2tform([0.5 0 0]), trvec2tform([0.5 0 0]), trvec2tform([0.25, 0, 0])};
 home = [0 0 0];
 robot = KinematicValidation.build_rigid_body_model(links, joints, type, frames, home);
+joint_lim = [-pi/2 pi/4; -pi/2 0; -pi/2 0];
+axang = [0 0 1 -3*pi/4];
+rotm = axang2rotm(axang);
+M = eye(4);
+M(1:3,1:3) = rotm;
+M(1:3,4) = [0.7 -0.3 0]';
+des_frame = M;
+des_vel = 5*rand(6,1);
+des_vel(1:2,1) = 0;
+des_vel(end,1) = 0;
+P = rand(3,2);
+DMT = [15 0; 0 4];
+des_wrench = 2*rand(6,1);
+des_wrench(1:2,1) = 0;
+des_wrench(end,1) = 0;
+kin_1 = KinematicValidation(robot, joint_lim, des_frame, des_vel, des_wrench);
+% kin_1.back_fwd_calculation_loop([0 0 0], P, DMT)
+min_val = [-40 -50];
+max_val = [40 50];
+KinematicValidation.call_pso(2, [5 4;3 0.5], [7 2]', min_val, max_val, 1)
+
+
 
 % link1 = rigidBody('link1');
 % jnt1 = rigidBodyJoint('jnt1', 'revolute');
