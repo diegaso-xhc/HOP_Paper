@@ -37,21 +37,21 @@ des_wrench = 2*rand(6,1);
 des_wrench(1:2,1) = 0;
 des_wrench(end,1) = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-kin_1 = KinematicValidation(robot, joint_lim, des_frame, des_vel, des_wrench); % Building object
-kin_1.back_fwd_calculation_loop([0 0 0], P, DMT) % Calculate and optimize motor torques and speeds
+kin = KinematicValidation(robot, joint_lim, des_frame, des_vel, des_wrench); % Building object
+kin.back_fwd_calculation_loop([0 0 0], P, DMT) % Calculate and optimize motor torques and speeds
 
 %%%% Getting results
-Jacobian = kin_1.geom_jacobian;
-sq_error_pos = kin_1.get_pos_square_error; % frame error
-sq_error_vel = kin_1.get_vel_square_error; % twist error
-sq_error_wrench = kin_1.get_wrench_square_error; % wrench error
-config = kin_1.curr_config; % Current joint positions
-endeff = kin_1.curr_endeff_frame; % Current end effector frame
-current_twist = kin_1.curr_vel;
-current_wrench = kin_1.curr_wrench;
-desired_frame = kin_1.des_frame;
-desired_twist = kin_1.des_vel;
-desired_wrench = kin_1.des_wrench;
+Jacobian = kin.geom_jacobian;
+sq_error_pos = kin.get_pos_square_error; % frame error
+sq_error_vel = kin.get_vel_square_error; % twist error
+sq_error_wrench = kin.get_wrench_square_error; % wrench error
+config = kin.curr_config; % Current joint positions
+endeff = kin.curr_endeff_frame; % Current end effector frame
+current_twist = kin.curr_vel;
+current_wrench = kin.curr_wrench;
+desired_frame = kin.des_frame;
+desired_twist = kin.des_vel;
+desired_wrench = kin.des_wrench;
 
 %%%% Visualize robot configuration
-show(kin_1.rigid_body_model, kin_1.curr_config)
+% show(kin.rigid_body_model, kin.curr_config)
