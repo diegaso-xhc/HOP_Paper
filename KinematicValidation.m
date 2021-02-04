@@ -99,9 +99,10 @@ classdef KinematicValidation < handle
                                         % G is a matrix simplifying the
                                         % operation used for the optimization
             min_val = (w_motor - 2)';
-            max_val = (w_motor + 2)';            
-            w_motor_opt = KinematicValidation.call_pso(length(w_motor), G_of_th, obj.des_vel, min_val, max_val, 0);
-            w_motor_opt = w_motor_opt.bestSolution.Position'; % This position has to do with PSO not with the robot
+            max_val = (w_motor + 2)';    
+            w_motor_opt = lsqlin(G_of_th, obj.des_vel, eye(size(G_of_th, 2)), max_val'.*ones(size(G_of_th, 2), 1)); % Using the optimization toolbox
+%             w_motor_opt = KinematicValidation.call_pso(length(w_motor), G_of_th, obj.des_vel, min_val, max_val, 0);           
+%             w_motor_opt = w_motor_opt.bestSolution.Position'; % This position has to do with PSO not with the robot
             obj.curr_vel = G_of_th*w_motor_opt; % Actual twist at end effector
             obj.curr_motor_speed = w_motor_opt; % Assigning optimized motor speed
             obj.curr_tendon_speed = drive_train_model*obj.curr_motor_speed;
@@ -114,8 +115,9 @@ classdef KinematicValidation < handle
                                              % operation used for the optimization            
             min_val = (tao_motor - 2)';
             max_val = (tao_motor + 2)';
-            tao_motor_opt = KinematicValidation.call_pso(length(tao_motor), B_of_th, obj.des_wrench, min_val, max_val, 0);
-            tao_motor_opt = tao_motor_opt.bestSolution.Position'; % This position has to do with the PSO algorithm not with the robot
+            tao_motor_opt = lsqlin(B_of_th, obj.des_wrench, eye(size(B_of_th, 2)), max_val'.*ones(size(B_of_th, 2), 1)); % Using the optimization toolbox
+%             tao_motor_opt = KinematicValidation.call_pso(length(tao_motor), B_of_th, obj.des_wrench, min_val, max_val, 0);
+%             tao_motor_opt = tao_motor_opt.bestSolution.Position'; % This position has to do with the PSO algorithm not with the robot
             obj.curr_wrench = B_of_th*tao_motor_opt; % Actual wrench at end effector
             obj.curr_motor_torque = tao_motor_opt; % Assigning optimized motor speed
             obj.curr_tendon_force = drive_train_model*obj.curr_motor_torque;
