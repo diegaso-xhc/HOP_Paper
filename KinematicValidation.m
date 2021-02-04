@@ -6,7 +6,8 @@ classdef KinematicValidation < handle
        des_vel % This is the desired twist at the end effector (6x1: (1:3,1) corresponds to w and (4:6,1) corresponds to v) with respect to a base frame
        des_wrench % This is the desired wrench at the end effector (6x1: (1:3,1) corresponds to m and (4:6,1) corresponds to f) with respect to a base frame
        initial_guess % This is the initial guess for the inverse kinematics calculation
-       gen_inverse_kinematics % Generalized Inverse Kinematics objects
+       gen_inverse_kinematics % Generalized Inverse Kinematics objects (it allows the specification of joint limits)
+       inverse_kinematics % Inverse Kinematics objects (it does not allow the specification of joint limits)
        curr_config % This is the current configuration of the rigid body model
        geom_jacobian % This is the geometric jacobian at a given configuration
        curr_endeff_frame % Current frame of the end effector
@@ -26,6 +27,7 @@ classdef KinematicValidation < handle
             obj.des_wrench = des_wrench;
             obj.initial_guess = zeros(1, obj.rigid_body_model.NumBodies - 1); % Initial guess is a zero value on each joint
             obj.gen_inverse_kinematics = generalizedInverseKinematics('RigidBodyTree', obj.rigid_body_model, 'ConstraintInputs', {'joint', 'pose'}); % Initialize an inverse kinematics object
+            obj.inverse_kinematics = inverseKinematics('RigidBodyTree', obj.rigid_body_model); % Initialize the inverse kinematics object
             obj.joint_lim = constraintJointBounds(obj.rigid_body_model); % Joint limits
             obj.joint_lim.Bounds = joint_lim; % Joint limits
             obj.des_frame = constraintPoseTarget('endeffector');
@@ -37,13 +39,24 @@ classdef KinematicValidation < handle
         function set_desired_frame(obj, des_frame)
             obj.des_frame.TargetTransform = des_frame; % Desired frame for end effector           
         end
-        function run_inverse_kinematics(obj, initial_guess)
-            if nargin == 1   
-                % Use the original initial guess vector
-                obj.curr_config = obj.gen_inverse_kinematics(obj.initial_guess, obj.joint_lim, obj.des_frame); % If the user does not provide an initial joint positions guess
+        function run_inverse_kinematics(obj, type, initial_guess)
+            % Type determines the inverse_kinematics object to use. For
+            % faster iterations use type 2. For accurate, within bounds,
+            % results use type 1
+            if nargin == 2   
+                % Use the original initial guess vector                
+                if type == 1                     
+                   obj.curr_config = obj.gen_inverse_kinematics(obj.initial_guess, obj.joint_lim, obj.des_frame); % If the user does not provide an initial joint positions guess
+                else
+                   obj.curr_config = obj.inverse_kinematics('endeffector', obj.des_frame.TargetTransform, [1 1 1 1 1 1], obj.initialguess); 
+                end
             else
                 % If there is an initial_guess vector as input
-                obj.curr_config = obj.gen_inverse_kinematics(initial_guess, obj.joint_lim, obj.des_frame);
+                if type == 1
+                   obj.curr_config = obj.gen_inverse_kinematics(initial_guess, obj.joint_lim, obj.des_frame);
+                else
+                   obj.curr_config = obj.inverse_kinematics('endeffector', obj.des_frame.TargetTransform, [1 1 1 1 1 1], initial_guess);  
+                end
             end
             obj.geom_jacobian = geometricJacobian(obj.rigid_body_model, obj.curr_config, 'endeffector'); % Geometric Jacobian with respect to the base frame 
         end
@@ -59,11 +72,11 @@ classdef KinematicValidation < handle
                 obj.curr_endeff_frame = getTransform(obj.rigid_body_model, joint_vector, 'endeffector', 'base');                
             end            
         end
-        function back_fwd_calculation_loop(obj, initial_guess, tendon_coupl_model,  drive_train_model)
-            if nargin == 4
-                run_inverse_kinematics(obj, initial_guess)
+        function back_fwd_calculation_loop(obj, initial_guess, tendon_coupl_model,  drive_train_model, type)
+            if nargin == 5
+                run_inverse_kinematics(obj, type, initial_guess)
             else
-                run_inverse_kinematics(obj)
+                run_inverse_kinematics(obj, type)
             end
             Jsi = pseudo_inv(obj.geom_jacobian); % Pseudo Inverse or simply inverse of the geometric jacobian
             drive_train_si = pseudo_inv(drive_train_model); % Pseudo Inverse or simply inverse of the drive train model
@@ -200,7 +213,7 @@ classdef KinematicValidation < handle
             param.maxIt = 100; % Maximum number of iterations
             param.nPop = 50; % Population size or swarm size
             param.w = chi; % Intertia coefficient
-            param.wdamp = 0.81; % Damping ratio of Inertia weight
+            param.wdamp = 1; % Damping ratio of Inertia weight
             param.c1 = chi*phi1; % Personal acceleration coefficient
             param.c2 = chi*phi2; % Social acceleration coefficient
             param.displ = disp; % This is the flag to display the information            

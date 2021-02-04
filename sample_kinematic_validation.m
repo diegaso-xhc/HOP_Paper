@@ -33,10 +33,14 @@ P = rand(3,2); % Tendon coupling Matrix (in this case 3 joints, 2 tendons)
 DMT = [15 0; 0 4]; % A diagonal matrix containing the Drive motor train coefficients
 %%%% Definition of a random desired wrench. Similarly, due to this
 %%%% particular problem, some coefficients are automatically zero
-des_wrench = 2*rand(6,1);
+des_wrench = zeros(6,1);
 des_wrench(1:2,1) = 0;
 des_wrench(end,1) = 0;
+des_wrench(3:5,1) = 1./des_vel(3:5,1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+save('variables.mat', 'robot', 'joint_lim', 'des_frame', 'des_vel', 'des_wrench', 'P', 'DMT');
+
 kin = KinematicValidation(robot, joint_lim, des_frame, des_vel, des_wrench); % Building object
 kin.back_fwd_calculation_loop([0 0 0], P, DMT) % Calculate and optimize motor torques and speeds
 
