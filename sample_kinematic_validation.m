@@ -42,7 +42,7 @@ des_wrench(3:5,1) = 1./des_vel(3:5,1);
 save('variables.mat', 'robot', 'joint_lim', 'des_frame', 'des_vel', 'des_wrench', 'P', 'DMT');
 
 kin = KinematicValidation(robot, joint_lim, des_frame, des_vel, des_wrench); % Building object
-kin.back_fwd_calculation_loop([0 0 0], P, DMT) % Calculate and optimize motor torques and speeds
+kin.back_fwd_calculation_loop([0 0 0], P, DMT, 2) % Calculate and optimize motor torques and speeds
 
 %%%% Getting results
 Jacobian = kin.geom_jacobian;
