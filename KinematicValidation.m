@@ -95,7 +95,7 @@ classdef KinematicValidation < handle
             %%%%%%%%%%% Forward calculation and optimization %%%%%%%%%%%%%%
             %%%% Velocity section   
             G_of_th = obj.geom_jacobian*pseudo_inv(tendon_coupl_model')*drive_train_model;
-            curr_vel = G_of_th*w_motor;  % Resulting twist from forward calculation
+            curr_vel = G_of_th*w_motor; % Resulting twist from forward calculation
                                         % G is a matrix simplifying the
                                         % operation used for the optimization
             min_val = (w_motor - 2)';
@@ -110,7 +110,7 @@ classdef KinematicValidation < handle
             %%%%%%%%%%%%%%%%%%%%%%
             %%%% Wrench section
             B_of_th = Jsi'*tendon_coupl_model*drive_train_model;
-            curr_wrench = B_of_th*tao_motor; % Resulting twist from forward calculation
+            curr_wrench = B_of_th*tao_motor; % Resulting wrench from forward calculation
                                              % B is a matrix simplifying the
                                              % operation used for the optimization            
             min_val = (tao_motor - 2)';
